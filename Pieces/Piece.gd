@@ -51,3 +51,4 @@ func die():
 		var new_position = Vector2(target_position.x,VP.y + 100)
 		$Tween.interpolate_property(self, "position",target_position,new_position,randf()*2.0,Tween.TRANS_EXPO,Tween.EASE_IN,randf()*0.2)
 		$Tween.start()
+		$Dying.show()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=22 format=2]
 
 [ext_resource path="res://Grid/grid.gd" type="Script" id=1]
 [ext_resource path="res://Pieces/Piece Background.tscn" type="PackedScene" id=2]
@@ -6,13 +6,145 @@
 [ext_resource path="res://Assets/coin_small.png" type="Texture" id=4]
 [ext_resource path="res://Assets/Jellee-Bold.otf" type="DynamicFontData" id=5]
 [ext_resource path="res://Assets/background_game.png" type="Texture" id=6]
+[ext_resource path="res://Assets/noise.tres" type="Texture" id=7]
 
-[sub_resource type="DynamicFont" id=2]
+[sub_resource type="VisualShaderNodeScalarFunc" id=2]
+function = 1
+
+[sub_resource type="VisualShaderNodeScalarOp" id=3]
+default_input_values = [ 0, 0.0, 1, 0.5 ]
+operator = 2
+
+[sub_resource type="VisualShaderNodeTexture" id=4]
+texture = ExtResource( 6 )
+
+[sub_resource type="VisualShaderNodeColorConstant" id=5]
+constant = Color( 0.133333, 0.545098, 0.901961, 1 )
+
+[sub_resource type="VisualShaderNodeVectorOp" id=6]
+
+[sub_resource type="VisualShaderNodeInput" id=7]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeTexture" id=8]
+texture = ExtResource( 7 )
+
+[sub_resource type="VisualShaderNodeScalarOp" id=9]
+operator = 1
+
+[sub_resource type="VisualShaderNodeScalarFunc" id=10]
+function = 15
+
+[sub_resource type="VisualShaderNodeInput" id=11]
+input_name = "time"
+
+[sub_resource type="VisualShader" id=12]
+code = "shader_type canvas_item;
+uniform sampler2D tex_frg_6;
+
+
+
+void vertex() {
+// Output:0
+
+}
+
+void fragment() {
+// Color:3
+	vec3 n_out3p0 = vec3(0.133333, 0.545098, 0.901961);
+	float n_out3p1 = 1.000000;
+
+// VectorOp:4
+	vec3 n_in4p1 = vec3(0.00000, 0.00000, 0.00000);
+	vec3 n_out4p0 = n_out3p0 + n_in4p1;
+
+// Input:5
+	vec3 n_out5p0 = vec3(UV, 0.0);
+
+// Texture:6
+	vec4 tex_frg_6_read = texture(tex_frg_6, n_out5p0.xy);
+	vec3 n_out6p0 = tex_frg_6_read.rgb;
+	float n_out6p1 = tex_frg_6_read.a;
+
+// Input:9
+	float n_out9p0 = TIME;
+
+// ScalarFunc:10
+	float n_out10p0 = cos(n_out9p0);
+
+// ScalarOp:11
+	float n_in11p1 = 0.50000;
+	float n_out11p0 = n_out10p0 * n_in11p1;
+
+// ScalarOp:7
+	float n_out7p0 = dot(n_out6p0, vec3(0.333333, 0.333333, 0.333333)) - n_out11p0;
+
+// ScalarFunc:8
+	float n_out8p0 = round(n_out7p0);
+
+// Output:0
+	COLOR.rgb = n_out4p0;
+	COLOR.a = n_out8p0;
+
+}
+
+void light() {
+// Output:0
+
+}
+"
+graph_offset = Vector2( 595.049, 450 )
+mode = 1
+flags/light_only = false
+nodes/fragment/0/position = Vector2( 1100, 240 )
+nodes/fragment/2/node = SubResource( 4 )
+nodes/fragment/2/position = Vector2( 300, 140 )
+nodes/fragment/3/node = SubResource( 5 )
+nodes/fragment/3/position = Vector2( 520, 140 )
+nodes/fragment/4/node = SubResource( 6 )
+nodes/fragment/4/position = Vector2( 680, 140 )
+nodes/fragment/5/node = SubResource( 7 )
+nodes/fragment/5/position = Vector2( 300, 380 )
+nodes/fragment/6/node = SubResource( 8 )
+nodes/fragment/6/position = Vector2( 480, 380 )
+nodes/fragment/7/node = SubResource( 9 )
+nodes/fragment/7/position = Vector2( 720, 380 )
+nodes/fragment/8/node = SubResource( 10 )
+nodes/fragment/8/position = Vector2( 900, 380 )
+nodes/fragment/9/node = SubResource( 11 )
+nodes/fragment/9/position = Vector2( 300, 640 )
+nodes/fragment/10/node = SubResource( 2 )
+nodes/fragment/10/position = Vector2( 480, 640 )
+nodes/fragment/11/node = SubResource( 3 )
+nodes/fragment/11/position = Vector2( 720, 640 )
+nodes/fragment/connections = PoolIntArray( 3, 0, 4, 0, 4, 0, 0, 0, 5, 0, 6, 0, 6, 0, 7, 0, 7, 0, 8, 0, 8, 0, 0, 1, 9, 0, 10, 0, 10, 0, 11, 0, 11, 0, 7, 1 )
+
+[sub_resource type="ShaderMaterial" id=13]
+shader = SubResource( 12 )
+
+[sub_resource type="DynamicFont" id=1]
 font_data = ExtResource( 5 )
+
+[sub_resource type="Environment" id=14]
+background_mode = 4
+dof_blur_near_enabled = true
+dof_blur_near_distance = 1.1
+glow_enabled = true
+glow_strength = 0.7
+glow_blend_mode = 0
+glow_hdr_threshold = 0.0
+glow_bicubic_upscale = true
 
 [node name="Game" type="Node2D"]
 
 [node name="Background" type="Sprite" parent="."]
+texture = ExtResource( 6 )
+centered = false
+region_enabled = true
+region_rect = Rect2( 0, 0, 576, 1024 )
+
+[node name="Shader" type="Sprite" parent="."]
+material = SubResource( 13 )
 texture = ExtResource( 6 )
 centered = false
 region_enabled = true
@@ -50,8 +182,11 @@ texture = ExtResource( 4 )
 margin_left = 40.0
 margin_right = 566.0
 margin_bottom = 40.0
-custom_fonts/font = SubResource( 2 )
+custom_fonts/font = SubResource( 1 )
 valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 14 )

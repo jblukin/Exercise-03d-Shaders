@@ -1,16 +1,96 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://UI/Menu.gd" type="Script" id=1]
+[ext_resource path="res://icon.png" type="Texture" id=2]
 [ext_resource path="res://Assets/Jellee-Bold.otf" type="DynamicFontData" id=3]
 
-[sub_resource type="DynamicFont" id=3]
+[sub_resource type="Shader" id=4]
+code = "shader_type canvas_item;
+
+uniform vec4 BackColor : hint_color = vec4(0.0, 0.4, 0.58, 1.0);
+uniform vec4 CloudColor : hint_color = vec4(0.18, 0.70, 0.87, 1.0);
+uniform float speed : hint_range(0.0, 5.0) = 0.1;
+
+const float TAU = 6.28318530718;
+
+float Func(float pX)
+{
+	return 0.6*(0.5*sin(0.1*pX) + 0.5*sin(0.553*pX) + 0.7*sin(1.2*pX));
+}
+
+
+float FuncR(float pX)
+{
+	return 0.5 + 0.25*(1.0 + sin(mod(40.0*pX, TAU)));
+}
+
+
+float Layer(vec2 pQ, float pT)
+{
+	vec2 Qt = 3.5*pQ;
+	pT *= 0.5;
+	Qt.x += pT;
+
+	float Xi = floor(Qt.x);
+	float Xf = Qt.x - Xi -0.5;
+
+	vec2 C;
+	float Yi;
+	float D = 1.0 - step(Qt.y,  Func(Qt.x));
+
+	// Disk:
+	Yi = Func(Xi + 0.5);
+	C = vec2(Xf, Qt.y - Yi );
+	D =  min(D, length(C) - FuncR(Xi+ pT/80.0));
+
+	// Previous disk:
+	Yi = Func(Xi+1.0 + 0.5);
+	C = vec2(Xf-1.0, Qt.y - Yi );
+	D =  min(D, length(C) - FuncR(Xi+1.0+ pT/80.0));
+
+	// Next Disk:
+	Yi = Func(Xi-1.0 + 0.5);
+	C = vec2(Xf+1.0, Qt.y - Yi );
+	D =  min(D, length(C) - FuncR(Xi-1.0+ pT/80.0));
+
+	return min(1.0, D);
+}
+
+void fragment() {
+	//vec2 uv = 8.0 * (SCREEN_UV - UV * 2.0);
+	vec2 uv = 3.0 * (SCREEN_UV - UV * 2.0);
+
+	// Render:
+	vec3 Color= BackColor.rgb;
+	for(float J = 0.0; J <= 1.0; J += 0.2)
+	{
+		// Cloud Layer:
+		float Lt =  TIME * speed * (0.5  + 2.0 * J) * (1.0 + 0.1 * sin(226.0 * J)) + 17.0 * J;
+		vec2 Lp = vec2(0.0, 0.3 + 1.5 * ( J - 0.5));
+		float L = Layer(uv + Lp, Lt);
+		// Blur and color:
+		float Blur = 4.0 * (0.5 * abs(2.0 - 5.0 * J)) / (11.0 - 5.0 * J);
+		float V = mix( 0.0, 1.0, 1.0 - smoothstep( 0.0, 0.01 +0.2 * Blur, L ) );
+		vec3 Lc=  mix(CloudColor.rgb, vec3(1.0), J);
+		Color =mix(Color, Lc,  V);
+	}
+	COLOR = vec4(Color,1.);
+}"
+
+[sub_resource type="ShaderMaterial" id=5]
+shader = SubResource( 4 )
+shader_param/BackColor = Color( 0, 0.4, 0.58, 1 )
+shader_param/CloudColor = Color( 0.18, 0.7, 0.87, 1 )
+shader_param/speed = 2.0
+
+[sub_resource type="DynamicFont" id=1]
 size = 32
 font_data = ExtResource( 3 )
 
-[sub_resource type="DynamicFont" id=4]
+[sub_resource type="DynamicFont" id=2]
 font_data = ExtResource( 3 )
 
-[sub_resource type="DynamicFont" id=5]
+[sub_resource type="DynamicFont" id=3]
 font_data = ExtResource( 3 )
 
 [node name="Menu" type="Control"]
@@ -21,6 +101,12 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Sprite" type="Sprite" parent="."]
+material = SubResource( 5 )
+scale = Vector2( 4.5, 8 )
+texture = ExtResource( 2 )
+centered = false
 
 [node name="Background" type="ColorRect" parent="."]
 margin_left = 10.0
@@ -35,7 +121,7 @@ __meta__ = {
 [node name="Label" type="Label" parent="."]
 margin_right = 576.0
 margin_bottom = 512.0
-custom_fonts/font = SubResource( 3 )
+custom_fonts/font = SubResource( 1 )
 text = "Welcome to Match-3"
 align = 1
 valign = 1
@@ -45,7 +131,7 @@ margin_left = 238.0
 margin_top = 512.0
 margin_right = 338.0
 margin_bottom = 552.0
-custom_fonts/font = SubResource( 4 )
+custom_fonts/font = SubResource( 2 )
 text = "Play"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -56,7 +142,7 @@ margin_left = 238.0
 margin_top = 562.0
 margin_right = 338.0
 margin_bottom = 602.0
-custom_fonts/font = SubResource( 5 )
+custom_fonts/font = SubResource( 3 )
 text = "Quit"
 
 [connection signal="pressed" from="Play" to="." method="_on_Play_pressed"]
